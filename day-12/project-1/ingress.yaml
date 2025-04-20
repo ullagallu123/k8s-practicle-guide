@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: project-ingress
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/group.name: konkas-demo
+    external-dns.alpha.kubernetes.io/hostname: red.konkas.tech
+    external-dns.alpha.kubernetes.io/ttl: '60'
+spec:
+  ingressClassName: alb
+  rules:
+    - host: red.konkas.tech
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: project1-service
+                port:
+                  number: 80
