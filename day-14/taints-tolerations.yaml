@@ -1,0 +1,17 @@
+# Commands
+# kubectl taint nodes <node-name> disktype=ssd:NoSchedule/NoExecute/PreferNoSchedule 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  tolerations:
+  - key: "disktype"
+    operator: "Equal"
+    value: "ssd"
+    effect: "NoSchedule"
+  containers:
+  - name: nginx
+    image: nginx
+---
