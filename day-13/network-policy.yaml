@@ -1,0 +1,162 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: red
+  labels:
+    app: red
+spec:
+  containers:
+  - name: red
+    image: hashicorp/http-echo
+    args: ["-text=RED"]
+    ports:
+    - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: red-service
+spec:
+  selector:
+    app: red
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5678
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: blue
+  labels:
+    app: blue
+spec:
+  containers:
+  - name: blue
+    image: hashicorp/http-echo
+    args: ["-text=BLUE"]
+    ports:
+    - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blue-service
+spec:
+  selector:
+    app: blue
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5678
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: alpine-access
+  labels:
+    access: hello
+spec:
+  containers:
+  - name: alpine
+    image: alpine
+    command: ["/bin/sh", "-c", "sleep 3600"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alpine-access-service
+spec:
+  selector:
+    access: hello
+  ports:
+  - protocol: TCP
+    port: 80
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: alpine-block
+  labels:
+    access: hi
+spec:
+  containers:
+  - name: alpine
+    image: alpine
+    command: ["/bin/sh", "-c", "sleep 3600"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alpine-block-service
+spec:
+  selector:
+    access: hi
+  ports:
+  - protocol: TCP
+    port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app: blue
+  policyTypes:
+  - Ingress
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-red-to-blue
+spec:
+  podSelector:
+    matchLabels:
+      app: blue
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: red
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: red-egress-only-blue
+spec:
+  podSelector:
+    matchLabels:
+      app: red
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: blue
+    ports:
+    - protocol: TCP
+      port: 5678
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: red-ingress-only-access
+spec:
+  podSelector:
+    matchLabels:
+      app: red
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          access: yes
+  policyTypes:
+  - Ingress
