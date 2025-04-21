@@ -1,0 +1,72 @@
+---
+# Cluster-admin-role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cluster-admin-siva
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+# cluster-admin-binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cluster-admin-binding-siva
+subjects:
+- kind: User
+  name: siva
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin-siva
+  apiGroup: rbac.authorization.k8s.io
+---
+# role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: expense
+  name: expense-namespace-user
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+# namespace-access-binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ram-expense-binding
+  namespace: expense
+subjects:
+- kind: User
+  name: ram
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: expense-namespace-user
+  apiGroup: rbac.authorization.k8s.io
+---
+# aws-auth
+# Update this in the kube-system namespace
+# kubectl edit cm aws_auth -n kube-system
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapUsers: |
+    - userarn: arn:aws:iam::<ACCOUNT_ID>:user/siva
+      username: siva
+      groups: cluster-admin-siva 
+        - 
+    - userarn: arn:aws:iam::<ACCOUNT_ID>:user/ram
+      username: ram
+      groups:
+        - ram-expense-binding
+---
+
+
