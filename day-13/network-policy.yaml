@@ -98,10 +98,11 @@ spec:
   - protocol: TCP
     port: 80
 ---
+# deny-all-ingress-blue
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: deny-all-ingress
+  name: deny-all-ingress-blue
 spec:
   podSelector:
     matchLabels:
@@ -144,6 +145,7 @@ spec:
   policyTypes:
   - Egress
 ---
+# red-ingress-only-access-from-alpine-access-pod
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
